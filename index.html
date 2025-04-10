@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placar de Vôlei</title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; padding: 20px;">
+    <h1 style="font-size: 48px; color: #333;">Placar de Vôlei</h1>
+
+    <div style="margin: 20px 0;">
+        <h2 style="font-size: 32px;">Placar Atual</h2>
+        <div style="font-size: 80px; font-weight: bold; margin: 10px 0;">
+            <span id="time1" style="color: #007bff;">0</span> - <span id="time2" style="color: #dc3545;">0</span>
+        </div>
+        <button onclick="adicionarPonto('time1')" style="font-size: 24px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer;">Ponto Time 1</button>
+        <button onclick="adicionarPonto('time2')" style="font-size: 24px; padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 10px; cursor: pointer; margin-left: 20px;">Ponto Time 2</button>
+    </div>
+
+    <div style="margin: 30px 0;">
+        <h2 style="font-size: 32px;">Placar por Set</h2>
+        <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 28px;">
+            <thead>
+                <tr>
+                    <th>Set</th>
+                    <th>Time 1</th>
+                    <th>Time 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Set 1</td><td id="set1-time1">0</td><td id="set1-time2">0</td></tr>
+                <tr><td>Set 2</td><td id="set2-time1">0</td><td id="set2-time2">0</td></tr>
+                <tr><td>Set 3</td><td id="set3-time1">0</td><td id="set3-time2">0</td></tr>
+                <tr><td>Set 4</td><td id="set4-time1">0</td><td id="set4-time2">0</td></tr>
+                <tr><td>Set 5</td><td id="set5-time1">0</td><td id="set5-time2">0</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="font-size: 28px; font-weight: bold; margin: 30px 0;">
+        <h3>Sets Vencidos</h3>
+        <div>Time 1: <span id="sets-time1">0</span></div>
+        <div>Time 2: <span id="sets-time2">0</span></div>
+    </div>
+
+    <div style="margin: 30px 0;">
+        <h2 style="font-size: 32px;">Histórico de Pontos</h2>
+        <ul id="historico" style="font-size: 24px; list-style-type: none; padding: 0;">
+            <!-- O histórico de pontos será inserido aqui -->
+        </ul>
+    </div>
+
+    <div>
+        <button onclick="zerarPlacar()" style="font-size: 24px; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer;">Zerar Placar</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
