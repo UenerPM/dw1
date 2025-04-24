@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmação do Pedido</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Confirme seu Pedido</h1>
+  </header>
+  <main>
+    <section id="resumo-pedido" class="resumo">
+      <!-- Itens do carrinho serão inseridos aqui via JavaScript -->
+    </section>
+    <nav style="text-align: center; margin-top: 30px;">
+      <a class="botao" href="index.html">Voltar ao Menu</a>
+      <a class="botao" href="pagamento.html">Ir para Pagamento</a>
+    </nav>
+  </main>
+
+  <script>
+    const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const resumo = document.getElementById('resumo-pedido');
+    let total = 0;
+
+    if (carrinho.length === 0) {
+      resumo.innerHTML = "<p>Seu carrinho está vazio.</p>";
+    } else {
+      let html = "<ul>";
+      carrinho.forEach(item => {
+        html += `<li>${item.nome} - R$ ${item.preco.toFixed(2)}</li>`;
+        total += item.preco;
+      });
+      html += `</ul><p><strong>Total: R$ ${total.toFixed(2)}</strong></p>`;
+      resumo.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

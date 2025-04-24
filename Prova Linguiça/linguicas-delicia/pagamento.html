@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Pagamento Confirmado</h1>
+  </header>
+  <main>
+    <section class="resumo" style="text-align: center;">
+      <p style="font-size: 1.2rem; margin-top: 20px;">
+        Obrigado por comprar conosco! Seu pedido está sendo preparado com muito carinho. 😋🔥
+      </p>
+      <img src="img/linguica1.jpg" alt="Linguiça deliciosa" style="width: 250px; border-radius: 12px; margin: 20px auto;">
+      <br>
+      <a class="botao" href="index.html" onclick="limparCarrinho()">Voltar ao Início</a>
+    </section>
+  </main>
+
+  <script>
+    function limparCarrinho() {
+      localStorage.removeItem('carrinho');
+    }
+  </script>
+</body>
+</html>
