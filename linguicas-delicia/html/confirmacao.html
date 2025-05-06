@@ -2,12 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Confirmação do Pedido</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
   <header>
+    <button class="back-button" onclick="window.history.back()">← Voltar</button>
     <img src="../img/logo.png" alt="Logo Uener Linguço" class="logo" />
     <h1>Confirmação do Pedido</h1>
   </header>
@@ -20,13 +21,44 @@
 
     <section>
       <h2>Forma de Pagamento:</h2>
-      <label><input type="radio" name="pagamento" value="PIX" checked /> PIX</label><br />
+      <label><input type="radio" name="pagamento" value="PIX" checked /> PIX</label><br/>
       <label><input type="radio" name="pagamento" value="Cartão de Crédito" /> Cartão de Crédito</label>
     </section>
 
+    <!-- vai para pagamento -->
     <button id="btn-finalizar" class="botao">Finalizar e Pagar</button>
   </main>
 
-  <script src="../js/script.js"></script>
+  <script>
+    // Preenche resumo e define onclick para avançar
+    document.addEventListener("DOMContentLoaded", () => {
+      const lista = document.getElementById("confirmacao-lista");
+      const carrinho = JSON.parse(localStorage.getItem("carrinho")) || {};
+      let total = 0;
+      lista.innerHTML = "";
+
+      if (Object.keys(carrinho).length === 0) {
+        lista.innerHTML = "<li>Nenhum item no carrinho</li>";
+      } else {
+        Object.entries(carrinho).forEach(([nome, item]) => {
+          const subtotal = item.preco * item.quantidade;
+          lista.innerHTML += `<li>${nome} x${item.quantidade} – R$ ${subtotal.toFixed(2)}</li>`;
+          total += subtotal;
+        });
+        lista.innerHTML += `<li><strong>Total: R$ ${total.toFixed(2)}</strong></li>`;
+      }
+
+      document.getElementById("btn-finalizar").addEventListener("click", () => {
+        // impede se carrinho vazio
+        if (Object.keys(carrinho).length === 0) {
+          return alert("Carrinho vazio!");
+        }
+        // grava método e avança
+        const metodo = document.querySelector('input[name="pagamento"]:checked').value;
+        localStorage.setItem("formaPagamento", metodo);
+        window.location.href = "pagamento.html";
+      });
+    });
+  </script>
 </body>
 </html>

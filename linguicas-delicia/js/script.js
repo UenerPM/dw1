@@ -1,4 +1,6 @@
-// Funções comuns
+// JS principal para todas as páginas: index, confirmação e pagamento
+
+// Funções de carrinho
 function getCarrinho() {
   return JSON.parse(localStorage.getItem("carrinho")) || {};
 }
@@ -7,8 +9,14 @@ function salvarCarrinho(carrinho) {
   localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
 
-function atualizarCarrinhoDOM() {
-  const lista = document.getElementById("carrinho-lista");
+function limparCarrinho() {
+  localStorage.removeItem("carrinho");
+  localStorage.removeItem("formaPagamento");
+}
+
+// Atualiza o DOM do carrinho (index e confirmação)
+function atualizarCarrinhoDOM(listaSelector, totalSelector) {
+  const lista = document.querySelector(listaSelector);
   if (!lista) return;
 
   const carrinho = getCarrinho();
@@ -20,312 +28,382 @@ function atualizarCarrinhoDOM() {
     return;
   }
 
-  Object.keys(carrinho).forEach(nome => {
-    const qtd = carrinho[nome].quantidade;
-    const preco = carrinho[nome].preco;
-    const subtotal = preco * qtd;
-    const li = document.createElement("li");
-    li.textContent = `${nome} x${qtd} - R$ ${subtotal.toFixed(2)}`;
-    lista.appendChild(li);
+  Object.entries(carrinho).forEach(([nome, item]) => {
+    const subtotal = item.preco * item.quantidade;
+    lista.innerHTML += `<li>${nome} x${item.quantidade} – R$ ${subtotal.toFixed(2)}</li>`;
     total += subtotal;
   });
 
-  const totalElemento = document.createElement("li");
-  totalElemento.innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
-  lista.appendChild(totalElemento);
+  if (totalSelector) {
+    document.querySelector(totalSelector).textContent = `R$ ${total.toFixed(2)}`;
+  }
 }
 
-// Página Index
-document.addEventListener("DOMContentLoaded", function () {
+// Index: adiciona/remover itens e valida confirmação
+function setupIndexPage() {
   const botoesAdicionar = document.querySelectorAll(".adicionar");
   const botoesRemover = document.querySelectorAll(".remover");
   const linkConfirmar = document.getElementById("confirmar-pedido");
 
-  // Controles de quantidade
-  botoesAdicionar.forEach(botao => {
-    botao.addEventListener("click", function () {
-      const nome = this.dataset.nome;
-      const preco = parseFloat(this.dataset.preco);
+  botoesAdicionar.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const nome = btn.dataset.nome;
+      const preco = parseFloat(btn.dataset.preco);
       const carrinho = getCarrinho();
 
-      if (!carrinho[nome]) {
-        carrinho[nome] = { quantidade: 0, preco: preco };
-      }
-      carrinho[nome].quantidade += 1;
+      carrinho[nome] = carrinho[nome] || { quantidade: 0, preco };
+      carrinho[nome].quantidade++;
+      salvarCarrinho(carrinho);
 
       document.querySelector(`.quantidade[data-nome="${nome}"]`).textContent = carrinho[nome].quantidade;
-      salvarCarrinho(carrinho);
-      atualizarCarrinhoDOM();
+      atualizarCarrinhoDOM("#carrinho-lista");
     });
   });
 
-  botoesRemover.forEach(botao => {
-    botao.addEventListener("click", function () {
-      const nome = this.dataset.nome;
+  botoesRemover.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const nome = btn.dataset.nome;
       const carrinho = getCarrinho();
-
-      if (carrinho[nome] && carrinho[nome].quantidade > 0) {
-        carrinho[nome].quantidade -= 1;
-        if (carrinho[nome].quantidade === 0) {
-          delete carrinho[nome];
-        }
+      if (carrinho[nome]) {
+        carrinho[nome].quantidade--;
+        if (carrinho[nome].quantidade <= 0) delete carrinho[nome];
+        salvarCarrinho(carrinho);
+        document.querySelector(`.quantidade[data-nome="${nome}"]`).textContent = carrinho[nome]?.quantidade || 0;
+        atualizarCarrinhoDOM("#carrinho-lista");
       }
-
-      const qtdElem = document.querySelector(`.quantidade[data-nome="${nome}"]`);
-      if (qtdElem) {
-        qtdElem.textContent = carrinho[nome]?.quantidade || 0;
-      }
-
-      salvarCarrinho(carrinho);
-      atualizarCarrinhoDOM();
     });
   });
 
-  // Validação do carrinho antes de confirmar
   if (linkConfirmar) {
-    linkConfirmar.addEventListener("click", function (e) {
-      const carrinho = getCarrinho();
-      if (Object.keys(carrinho).length === 0) {
+    linkConfirmar.addEventListener("click", e => {
+      if (Object.keys(getCarrinho()).length === 0) {
         e.preventDefault();
         alert("Adicione itens ao carrinho antes de confirmar!");
       }
     });
   }
 
-  atualizarCarrinhoDOM();
-});
+  atualizarCarrinhoDOM("#carrinho-lista");
+}
 
-// Página Confirmação
-document.addEventListener("DOMContentLoaded", function () {
-  const listaConfirmacao = document.getElementById("confirmacao-lista");
+// Confirmação: mostra resumo e direciona ao pagamento
+function setupConfirmacaoPage() {
+  const lista = document.getElementById("confirmacao-lista");
   const btnFinalizar = document.getElementById("btn-finalizar");
+  const carrinho = getCarrinho();
+  let total = 0;
 
-  if (listaConfirmacao) {
-    const carrinho = getCarrinho();
-    let total = 0;
-    
-    listaConfirmacao.innerHTML = "";
-    
+  if (lista) {
+    lista.innerHTML = "";
     if (Object.keys(carrinho).length === 0) {
-      listaConfirmacao.innerHTML = "<li>Nenhum item no carrinho</li>";
+      lista.innerHTML = "<li>Nenhum item no carrinho</li>";
     } else {
-      Object.keys(carrinho).forEach(nome => {
-        const item = carrinho[nome];
+      Object.entries(carrinho).forEach(([nome, item]) => {
         const subtotal = item.preco * item.quantidade;
-        const li = document.createElement("li");
-        li.textContent = `${nome} x${item.quantidade} - R$ ${subtotal.toFixed(2)}`;
-        listaConfirmacao.appendChild(li);
+        lista.innerHTML += `<li>${nome} x${item.quantidade} – R$ ${subtotal.toFixed(2)}</li>`;
         total += subtotal;
       });
-
-      const totalElemento = document.createElement("li");
-      totalElemento.innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
-      totalElemento.style.fontWeight = "bold";
-      listaConfirmacao.appendChild(totalElemento);
+      lista.innerHTML += `<li><strong>Total: R$ ${total.toFixed(2)}</strong></li>`;
     }
   }
 
   if (btnFinalizar) {
-    btnFinalizar.addEventListener("click", function () {
-      const carrinho = getCarrinho();
+    btnFinalizar.addEventListener("click", () => {
       if (Object.keys(carrinho).length === 0) {
-        alert("Seu carrinho está vazio!");
-        return;
+        return alert("Carrinho vazio!");
       }
-
-      const pagamentoSelecionado = document.querySelector('input[name="pagamento"]:checked');
-      if (pagamentoSelecionado) {
-        localStorage.setItem("formaPagamento", pagamentoSelecionado.value);
-        window.location.href = "pagamento.html";
-      } else {
-        alert("Selecione uma forma de pagamento!");
-      }
+      const metodo = document.querySelector('input[name="pagamento"]:checked').value;
+      localStorage.setItem("formaPagamento", metodo);
+      window.location.href = "pagamento.html";
     });
   }
-});
+}
 
-// Página Pagamento
-document.addEventListener("DOMContentLoaded", function () {
-  const titulo = document.getElementById("titulo-pagamento");
+// Pagamento: carrega conteúdo, valida e conclui
+function setupPagamentoPage() {
   const conteudo = document.getElementById("conteudo-pagamento");
   const btnConcluir = document.getElementById("btn-concluir");
   const mensagemFinal = document.getElementById("mensagem-final");
+  const metodo = localStorage.getItem("formaPagamento");
+  const carrinho = getCarrinho();
 
-  if (titulo && conteudo && btnConcluir) {
-    const metodo = localStorage.getItem("formaPagamento");
-    const carrinho = getCarrinho();
+  if (!conteudo || !btnConcluir) return;
 
-    if (Object.keys(carrinho).length === 0) {
-      titulo.innerText = "Carrinho vazio";
-      conteudo.innerHTML = `<p>Retorne à página inicial e adicione itens ao carrinho</p>`;
-      btnConcluir.style.display = "none";
-      return;
-    }
-
-    if (metodo === "PIX") {
-      titulo.innerText = "Pagamento via PIX";
-      conteudo.innerHTML = `<p>Escaneie o QR Code abaixo:</p>
-        <img src="../img/qrcode-pix.png" alt="QR Code PIX" style="width: 200px;">`;
-    } else if (metodo === "Cartão de Crédito") {
-      titulo.innerText = "Pagamento com Cartão";
-      conteudo.innerHTML = `
-        <form id="form-cartao">
-          <input type="text" placeholder="Número do Cartão" required>
-          <input type="text" placeholder="Nome Titular" required>
-          <input type="text" placeholder="Validade (MM/AA)" required>
-          <input type="text" placeholder="CVV" required>
-        </form>`;
-    }
-
-    btnConcluir.addEventListener("click", function (e) {
-      e.preventDefault();
-      
-      if (metodo === "Cartão de Crédito") {
-        const inputs = document.querySelectorAll("#form-cartao input");
-        let isValid = true;
-        
-        inputs.forEach(input => {
-          if (!input.value.trim()) isValid = false;
-        });
-
-        if (!isValid) {
-          alert("Preencha todos os campos do cartão!");
-          return;
-        }
-      }
-
-      mensagemFinal.style.display = "block";
-      conteudo.style.display = "none";
-      btnConcluir.style.display = "none";
-      limparCarrinho();
-    });
+  // Se carrinho vazio
+  if (Object.keys(carrinho).length === 0) {
+    conteudo.innerHTML = "<p>Carrinho vazio. Volte e adicione itens.</p>";
+    btnConcluir.style.display = "none";
+    return;
   }
+
+  // Exibe PIX ou formulário de cartão
+  if (metodo === "PIX") {
+    conteudo.innerHTML = `
+      <div class="qrcode-container">
+        <img src="../img/qrcode-pix.png" alt="QR Code PIX">
+        <p>Use a chave:<br>123.456.789-00</p>
+      </div>`;
+  } else {
+    conteudo.innerHTML = `
+      <form id="form-cartao">
+        <div class="form-group">
+          <label for="numero-cartao">Número do Cartão:</label>
+          <input type="text" id="numero-cartao" placeholder="0000 0000 0000 0000" maxlength="19" required>
+        </div>
+        <div class="form-group">
+          <label for="validade">Validade (MM/AA):</label>
+          <input type="text" id="validade" placeholder="MM/AA" maxlength="5" required>
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV:</label>
+          <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+        </div>
+      </form>`;
+  }
+
+  btnConcluir.addEventListener("click", () => {
+    // valida formulário cartão, se existir
+    const form = document.getElementById("form-cartao");
+    if (form) {
+      const numero = document.getElementById("numero-cartao").value.trim();
+      const validade = document.getElementById("validade").value.trim();
+      const cvv = document.getElementById("cvv").value.trim();
+      if (!numero || !validade || !cvv) {
+        return alert("Preencha todos os campos do cartão!");
+      }
+    }
+
+    // conclui pagamento
+    limparCarrinho();
+    conteudo.style.display = "none";
+    btnConcluir.style.display = "none";
+    mensagemFinal.style.display = "block";
+  });
+}
+
+// Inicializa conforme a página
+document.addEventListener("DOMContentLoaded", () => {
+  setupIndexPage();
+  setupConfirmacaoPage();
+  setupPagamentoPage();
 });
+
+// ---------- Funções de Carrinho ----------
+function getCarrinho() {
+  return JSON.parse(localStorage.getItem("carrinho")) || {};
+}
+
+function salvarCarrinho(carrinho) {
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
+}
 
 function limparCarrinho() {
   localStorage.removeItem("carrinho");
   localStorage.removeItem("formaPagamento");
 }
 
-// Adiciona feedback visual ao adicionar itens
-document.querySelectorAll(".adicionar").forEach(btn => {
-  btn.addEventListener("click", function() {
-    this.classList.add("item-adicionado");
-    setTimeout(() => this.classList.remove("item-adicionado"), 500);
+// ---------- DOM do Carrinho (Index/Confirmação) ----------
+function atualizarCarrinhoDOM(listaSelector) {
+  const lista = document.querySelector(listaSelector);
+  if (!lista) return;
+  const carrinho = getCarrinho();
+  lista.innerHTML = "";
+  if (Object.keys(carrinho).length === 0) {
+    lista.innerHTML = "<li>Carrinho vazio</li>";
+    return;
+  }
+  Object.entries(carrinho).forEach(([nome, item]) => {
+    const subtotal = item.preco * item.quantidade;
+    lista.innerHTML += `<li>${nome} x${item.quantidade} – R$ ${subtotal.toFixed(2)}</li>`;
   });
-});
+}
 
-// =============================================
-// VERIFICAÇÃO DE PAGAMENTO
-// =============================================
-
-function verificarPagamento() {
-  // Verifica se está na página de pagamento
-  if (!document.getElementById('conteudo-pagamento')) return;
-
-  const metodoPagamento = localStorage.getItem('formaPagamento');
-  const carrinho = Carrinho.get();
-  
-  // Elementos da página
-  const btnConcluir = document.getElementById('btn-concluir');
-  const mensagemFinal = document.getElementById('mensagem-final');
-  const formCartao = document.getElementById('form-cartao');
-
-  if (btnConcluir) {
-    btnConcluir.addEventListener('click', async function(e) {
-      e.preventDefault();
-      
-      // Validação básica
-      if (Carrinho.isEmpty()) {
-        alert('Seu carrinho está vazio!');
-        return;
+// ---------- Pág. Index ----------
+function setupIndexPage() {
+  document.querySelectorAll(".adicionar").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const nome = btn.dataset.nome;
+      const preco = parseFloat(btn.dataset.preco);
+      const carrinho = getCarrinho();
+      carrinho[nome] = carrinho[nome] || { quantidade: 0, preco };
+      carrinho[nome].quantidade++;
+      salvarCarrinho(carrinho);
+      document.querySelector(`.quantidade[data-nome="${nome}"]`).textContent = carrinho[nome].quantidade;
+      atualizarCarrinhoDOM("#carrinho-lista");
+    });
+  });
+  document.querySelectorAll(".remover").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const nome = btn.dataset.nome;
+      const carrinho = getCarrinho();
+      if (carrinho[nome]) {
+        carrinho[nome].quantidade--;
+        if (carrinho[nome].quantidade <= 0) delete carrinho[nome];
+        salvarCarrinho(carrinho);
+        document.querySelector(`.quantidade[data-nome="${nome}"]`).textContent = carrinho[nome]?.quantidade || 0;
+        atualizarCarrinhoDOM("#carrinho-lista");
       }
-
-      // Verificação específica por método
-      if (metodoPagamento === 'Cartão de Crédito') {
-        if (formCartao) {
-          const numeroCartao = formCartao.querySelector('input[type="text"]').value;
-          if (!validarCartao(numeroCartao)) {
-            alert('Número de cartão inválido!');
-            return;
-          }
-        }
-      }
-
-      // Simulação de processamento
-      btnConcluir.disabled = true;
-      btnConcluir.textContent = 'Processando...';
-      
-      try {
-        // Simula uma requisição assíncrona
-        await simularRequisicaoPagamento();
-        
-        // Se chegou aqui, pagamento foi "aprovado"
-        mensagemFinal.style.display = 'block';
-        document.getElementById('conteudo-pagamento').style.display = 'none';
-        btnConcluir.style.display = 'none';
-        
-        // Limpa o carrinho após sucesso
-        Carrinho.clear();
-        
-        // Atualiza o histórico (opcional)
-        atualizarHistoricoPedidos(carrinho);
-        
-      } catch (error) {
-        console.error('Erro no pagamento:', error);
-        alert('Pagamento falhou: ' + error.message);
-        btnConcluir.disabled = false;
-        btnConcluir.textContent = 'Tentar Novamente';
+    });
+  });
+  const linkConf = document.getElementById("confirmar-pedido");
+  if (linkConf) {
+    linkConf.addEventListener("click", e => {
+      if (Object.keys(getCarrinho()).length === 0) {
+        e.preventDefault();
+        alert("Adicione itens ao carrinho antes de confirmar!");
       }
     });
   }
+  atualizarCarrinhoDOM("#carrinho-lista");
 }
 
-// Funções auxiliares para validação
-function validarCartao(numero) {
-  // Implementação simples do algoritmo de Luhn
-  const regex = /^[0-9]{13,19}$/;
-  if (!regex.test(numero)) return false;
-  
-  let sum = 0;
-  for (let i = 0; i < numero.length; i++) {
-    let digit = parseInt(numero[i]);
-    if ((numero.length - i) % 2 === 0) {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
-    }
-    sum += digit;
+// ---------- Pág. Confirmação ----------
+function setupConfirmacaoPage() {
+  const lista = document.getElementById("confirmacao-lista");
+  const btnFin = document.getElementById("btn-finalizar");
+  if (!lista || !btnFin) return;
+  const carrinho = getCarrinho();
+  let total = 0;
+  lista.innerHTML = "";
+  if (Object.keys(carrinho).length === 0) {
+    lista.innerHTML = "<li>Nenhum item no carrinho</li>";
+  } else {
+    Object.entries(carrinho).forEach(([nome, item]) => {
+      const subtotal = item.preco * item.quantidade;
+      lista.innerHTML += `<li>${nome} x${item.quantidade} – R$ ${subtotal.toFixed(2)}</li>`;
+      total += subtotal;
+    });
+    lista.innerHTML += `<li><strong>Total: R$ ${total.toFixed(2)}</strong></li>`;
   }
+  btnFin.addEventListener("click", () => {
+    if (Object.keys(carrinho).length === 0) {
+      return alert("Carrinho vazio!");
+    }
+    const metodo = document.querySelector('input[name="pagamento"]:checked').value;
+    localStorage.setItem("formaPagamento", metodo);
+    window.location.href = "pagamento.html";
+  });
+}
+
+// ---------- Validações de Cartão ----------
+function somenteDigitos(e) {
+  // permite somente Backspace (8), Delete (46) e dígitos (48–57)
+  if (![8,46].includes(e.keyCode) && (e.keyCode < 48 || e.keyCode > 57)) {
+    e.preventDefault();
+  }
+}
+
+function luhnCheck(num) {
+  let arr = (num + '')
+    .split('')
+    .reverse()
+    .map(x => parseInt(x));
+  let sum = arr.reduce((acc, val, idx) => {
+    if (idx % 2) {
+      val *= 2;
+      if (val > 9) val -= 9;
+    }
+    return acc + val;
+  }, 0);
   return sum % 10 === 0;
 }
 
-function simularRequisicaoPagamento() {
-  return new Promise((resolve, reject) => {
-    // Simula um delay de 2 segundos para processamento
-    setTimeout(() => {
-      // 80% de chance de sucesso (para teste)
-      if (Math.random() > 0.2) {
-        resolve({ status: 'approved' });
-      } else {
-        reject(new Error('Transação recusada pelo processador de pagamento'));
+function validarValidade(valor) {
+  const [mes, ano] = valor.split('/').map(Number);
+  if (!mes || !ano || mes < 1 || mes > 12) return false;
+  const agora = new Date();
+  const anoAtual = agora.getFullYear() % 100;
+  const mesAtual = agora.getMonth() + 1;
+  return ano > anoAtual || (ano === anoAtual && mes >= mesAtual);
+}
+
+// ---------- Pág. Pagamento ----------
+function setupPagamentoPage() {
+  const conteudo = document.getElementById("conteudo-pagamento");
+  const btnConcluir = document.getElementById("btn-concluir");
+  const mensagemFinal = document.getElementById("mensagem-final");
+  if (!conteudo || !btnConcluir) return;
+  
+  const metodo = localStorage.getItem("formaPagamento");
+  const carrinho = getCarrinho();
+  if (Object.keys(carrinho).length === 0) {
+    conteudo.innerHTML = "<p>Carrinho vazio. Volte e adicione itens.</p>";
+    btnConcluir.style.display = "none";
+    return;
+  }
+  
+  if (metodo === "PIX") {
+    conteudo.innerHTML = `
+      <div class="qrcode-container">
+        <img src="../img/qrcode-pix.png" alt="QR Code PIX">
+        <p>Use a chave:<br>123.456.789-00</p>
+      </div>`;
+  } else {
+    conteudo.innerHTML = `
+      <form id="form-cartao">
+        <div class="form-group">
+          <label for="numero-cartao">Número do Cartão:</label>
+          <input type="text" id="numero-cartao" maxlength="19" placeholder="0000 0000 0000 0000" required>
+        </div>
+        <div class="form-group">
+          <label for="validade">Validade (MM/AA):</label>
+          <input type="text" id="validade" maxlength="5" placeholder="MM/AA" required>
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV:</label>
+          <input type="text" id="cvv" maxlength="4" placeholder="123" required>
+        </div>
+      </form>`;
+      
+    // aplica restrição de dígitos
+    ["numero-cartao","validade","cvv"].forEach(id => {
+      const inp = document.getElementById(id);
+      inp.addEventListener("keydown", somenteDigitos);
+      if (id === "validade") {
+        // insere "/" após dois dígitos
+        inp.addEventListener("input", e => {
+          let v = e.target.value.replace(/\D/g,'').slice(0,4);
+          if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+          e.target.value = v;
+        });
+      } else if (id === "numero-cartao") {
+        inp.addEventListener("input", e => {
+          let v = e.target.value.replace(/\D/g,'').slice(0,16);
+          // agrupa em 4 em 4
+          v = v.match(/.{1,4}/g)?.join(' ') || v;
+          e.target.value = v;
+        });
       }
-    }, 2000);
+    });
+  }
+  
+  btnConcluir.addEventListener("click", () => {
+    const form = document.getElementById("form-cartao");
+    if (form) {
+      const num = document.getElementById("numero-cartao").value.replace(/\s/g,'');
+      const val = document.getElementById("validade").value;
+      const cvv = document.getElementById("cvv").value;
+      if (!luhnCheck(num)) {
+        return alert("Número de cartão inválido!");
+      }
+      if (!validarValidade(val)) {
+        return alert("Validade inválida ou expirada!");
+      }
+      if (!/^\d{3,4}$/.test(cvv)) {
+        return alert("CVV inválido!");
+      }
+    }
+    // finaliza pagamento
+    limparCarrinho();
+    conteudo.style.display = "none";
+    btnConcluir.style.display = "none";
+    mensagemFinal.style.display = "block";
   });
 }
 
-function atualizarHistoricoPedidos(pedido) {
-  try {
-    const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-    historico.push({
-      data: new Date().toISOString(),
-      itens: pedido,
-      total: Object.values(pedido).reduce((sum, item) => sum + (item.preco * item.quantidade), 0)
-    });
-    localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-  } catch (e) {
-    console.error('Erro ao salvar histórico:', e);
-  }
-}
-
-// Inicializa a verificação quando a página carrega
-document.addEventListener('DOMContentLoaded', verificarPagamento);
+// ---------- Inicialização ----------
+document.addEventListener("DOMContentLoaded", () => {
+  setupIndexPage();
+  setupConfirmacaoPage();
+  setupPagamentoPage();
+});
