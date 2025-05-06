@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uener Linguço</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../img/icon.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header>
+    <img src="../img/logo.png" alt="Logo" class="logo">
+    <h1 class="titulo-estilizado">Uener Linguço</h1>
+    <p class="subtitulo">As melhores linguiças direto da grelha pra você!</p>
+  </header>
+
+  <main>
+    <section class="produtos">
+      <div class="produto">
+        <img src="../img/toscana.jpg" alt="Linguiça Toscana" />
+        <h3>Linguiça Toscana</h3>
+        <p>R$ 20,00</p>
+        <div class="controle-qtd">
+          <button class="remover" data-nome="Linguiça Toscana">-</button>
+          <span class="quantidade" data-nome="Linguiça Toscana">0</span>
+          <button class="adicionar" data-nome="Linguiça Toscana" data-preco="20">+</button>
+        </div>
+      </div>
+    
+      <div class="produto">
+        <img src="../img/apimentada.jpg" alt="Linguiça Apimentada" />
+        <h3>Linguiça Apimentada</h3>
+        <p>R$ 22,00</p>
+        <div class="controle-qtd">
+          <button class="remover" data-nome="Linguiça Apimentada">-</button>
+          <span class="quantidade" data-nome="Linguiça Apimentada">0</span>
+          <button class="adicionar" data-nome="Linguiça Apimentada" data-preco="22">+</button>
+        </div>
+      </div>
+    
+      <div class="produto">
+        <img src="../img/queijo.jpg" alt="Linguiça com Queijo" />
+        <h3>Linguiça com Queijo</h3>
+        <p>R$ 25,00</p>
+        <div class="controle-qtd">
+          <button class="remover" data-nome="Linguiça com Queijo">-</button>
+          <span class="quantidade" data-nome="Linguiça com Queijo">0</span>
+          <button class="adicionar" data-nome="Linguiça com Queijo" data-preco="25">+</button>
+        </div>
+      </div>
+    
+      <div class="produto">
+        <img src="../img/defumada.jpg" alt="Linguiça Defumada" />
+        <h3>Linguiça Defumada</h3>
+        <p>R$ 24,00</p>
+        <div class="controle-qtd">
+          <button class="remover" data-nome="Linguiça Defumada">-</button>
+          <span class="quantidade" data-nome="Linguiça Defumada">0</span>
+          <button class="adicionar" data-nome="Linguiça Defumada" data-preco="24">+</button>
+        </div>
+      </div>
+    
+      <div class="produto">
+        <img src="../img/caseira.jpg" alt="Linguiça Caseira" />
+        <h3>Linguiça Caseira</h3>
+        <p>R$ 19,00</p>
+        <div class="controle-qtd">
+          <button class="remover" data-nome="Linguiça Caseira">-</button>
+          <span class="quantidade" data-nome="Linguiça Caseira">0</span>
+          <button class="adicionar" data-nome="Linguiça Caseira" data-preco="19">+</button>
+        </div>
+      </div>
+    </section>
+    
+    <section class="carrinho">
+      <h2>Carrinho</h2>
+      <ul id="carrinho-lista"></ul>
+      <a class="botao" href="confirmacao.html" id="confirmar-pedido">Confirmar Pedido</a>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+</body>
+</html>

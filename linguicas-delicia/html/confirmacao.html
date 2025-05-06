@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmação do Pedido</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header>
+    <img src="../img/logo.png" alt="Logo Uener Linguço" class="logo" />
+    <h1>Confirmação do Pedido</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2>Resumo do Pedido:</h2>
+      <ul id="confirmacao-lista"></ul>
+    </section>
+
+    <section>
+      <h2>Forma de Pagamento:</h2>
+      <label><input type="radio" name="pagamento" value="PIX" checked /> PIX</label><br />
+      <label><input type="radio" name="pagamento" value="Cartão de Crédito" /> Cartão de Crédito</label>
+    </section>
+
+    <button id="btn-finalizar" class="botao">Finalizar e Pagar</button>
+  </main>
+
+  <script src="../js/script.js"></script>
+</body>
+</html>

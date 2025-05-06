@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #fff7f0;
+  color: #333;
+}
+
+header {
+  background-color: #bb3e03;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-family: 'Luckiest Guy', cursive;
+  margin: 0;
+}
+
+.logo {
+  width: 100px;
+  display: block;
+  margin: 0 auto 10px;
+}
+
+main {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.produtos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.produto {
+  background-color: rgb(214, 180, 180);
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  width: 200px;
+  text-align: center;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+}
+
+.produto img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.controle-qtd {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+button, .botao {
+  background-color: #e76f51;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+button:hover, .botao:hover {
+  background-color: #d35400;
+}
+
+.carrinho {
+  margin-top: 30px;
+  background-color: #ffeedd;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.carrinho ul {
+  list-style: none;
+  padding: 0;
+}
+
+.carrinho li {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.icon {
+  width: 24px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+#confirmacao-lista {
+  background-color: #ffeedd;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#confirmacao-lista li {
+  margin-bottom: 10px;
+}
+
+input[type="radio"] {
+  margin-right: 10px;
+}
+
+#mensagem-final {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+/* Adicionar no style.css */
+.item-adicionado {
+  transform: scale(1.1);
+  background-color: #4CAF50 !important;
+  transition: all 0.3s ease;
+}
+
+/* Adicione ao seu style.css */
+#btn-concluir[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
