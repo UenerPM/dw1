@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pagamento</title>
-  <link rel="stylesheet" href="../css/style.css"/>
+  <title>Uener Linguço — Pagamento</title>
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-  <header>
-    <button class="back-button" onclick="window.history.back()">← Voltar</button>
-    <img src="../img/logo.png" alt="Logo Uener Linguço" class="logo"/>
-    <h1>Pagamento</h1>
+  <header class="header">
+    <h1 class="header-title">Uener Linguço</h1>
   </header>
 
-  <main>
-    <div id="conteudo-pagamento"></div>
-    <button id="btn-concluir" class="botao">Confirmar Pagamento</button>
-
-    <section id="mensagem-final" style="display:none;">
-      <p>Pagamento confirmado com sucesso! ✔️</p>
-      <a href="index.html" class="botao">Voltar ao Início</a>
+  <main class="container">
+    <section class="payment">
+      <h2>Pagamento via PIX</h2>
+      <p>Valor total: <strong id="total-amount">R$ 0,00</strong></p>
+      <p>Escaneie o QR Code abaixo para efetuar o pagamento:</p>
+      <div class="qrcode-container">
+        <img
+          id="pix-qrcode"
+          src=""
+          alt="QR Code PIX Uener Linguço"
+          class="qrcode-image"
+          onerror="this.onerror=null; this.src='../img/qrcode-fallback.png';"
+        />
+      </div>
+      <p>Após confirmação do pagamento, você será redirecionado para a página de confirmação.</p>
+      <button class="btn" id="btn-confirm">Confirmar</button>
+      <button class="btn btn-secondary" onclick="window.history.back();">Voltar</button>
     </section>
   </main>
+
   <script src="../js/script.js"></script>
 </body>
 </html>

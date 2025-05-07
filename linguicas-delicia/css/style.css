@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
 
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -30,7 +31,7 @@ header {
 }
 
 .logo {
-  width: 60px;   /* ajustado para um tamanho menor */
+  width: 60px;
   display: block;
   margin: 0 auto 10px;
 }
@@ -125,14 +126,12 @@ input[type="radio"] {
   border-radius: 8px;
 }
 
-/* Feedback ao adicionar */
 .item-adicionado {
   transform: scale(1.1);
   background-color: #4CAF50 !important;
   transition: all 0.3s ease;
 }
 
-/* Loader */
 .loader {
   display: inline-block;
   width: 16px;
@@ -143,21 +142,22 @@ input[type="radio"] {
   animation: spin 1s ease-in-out infinite;
   margin-right: 8px;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Validação de inputs */
 input:invalid { border-color: #ff4444; }
 input:valid   { border-color: #00C851; }
 
-/* Formulário de pagamento */
 .form-group {
   margin-bottom: 1.5rem;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
 }
+
 #numero-cartao,
 #validade,
 #cvv {
@@ -167,43 +167,12 @@ input:valid   { border-color: #00C851; }
   border-radius: 8px;
   font-size: 16px;
 }
-.input-invalido {
-  border-color: #ff4444 !important;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>') no-repeat right 12px center/20px;
-}
-
-/* Seleção de método */
-.metodo-pagamento {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.opcoes-pagamento {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1rem;
-}
-.botao-metodo {
-  padding: 12px 24px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.botao-metodo.active {
-  background-color: #e76f51;
-  color: white;
-  border-color: #d35400;
-}
-
-.secao-pagamento { display: none; }
-.secao-pagamento.ativa { display: block; }
 
 .qrcode-container {
   text-align: center;
   margin: 2rem 0;
 }
+
 .qrcode-container img {
   width: 200px;
   height: 200px;
