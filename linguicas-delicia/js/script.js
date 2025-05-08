@@ -11,6 +11,7 @@ function salvarCarrinho(carrinho) {
 }
 
 // Limpa o carrinho e a forma de pagamento do localStorage
+
 function limparCarrinho() {
   localStorage.removeItem("carrinho");
   localStorage.removeItem("formaPagamento");
@@ -45,6 +46,11 @@ function atualizarCarrinhoDOM(listaSelector, totalSelector) {
 
 // Configura a página inicial (index.html) para manipular itens do carrinho
 function setupIndexPage() {
+  // Esvazia o carrinho apenas se o usuário recarregar a página (F5 ou Ctrl+R)
+if (performance.getEntriesByType("navigation")[0].type === "reload") {
+  limparCarrinho();
+}
+
   const botoesAdicionar = document.querySelectorAll(".adicionar");
   const botoesRemover = document.querySelectorAll(".remover");
   const linkConfirmar = document.getElementById("confirmar-pedido");
