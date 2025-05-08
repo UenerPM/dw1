@@ -1,8 +1,6 @@
 // JS principal para todas as páginas: index, confirmação e pagamento
 
 // Funções de carrinho
-
-
 function getCarrinho() {
   return JSON.parse(localStorage.getItem("carrinho")) || {};
 }
@@ -123,7 +121,7 @@ function setupConfirmacaoPage() {
 
 // Validações de cartão
 function somenteDigitos(e) {
-  if (![8,46].includes(e.keyCode) && (e.keyCode < 48 || e.keyCode > 57)) {
+  if (![8, 46].includes(e.keyCode) && (e.keyCode < 48 || e.keyCode > 57)) {
     e.preventDefault();
   }
 }
@@ -153,6 +151,46 @@ function validarCVV(cvv) {
   return /^\d{3,4}$/.test(cvv);
 }
 
+// Função CRC16 para gerar código de verificação
+function crc16(payload) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+// Função correta para gerar payload PIX no formato EMV
+function montarPayloadPix(chave, valor, nome, cidade) {
+  const format = (id, value) => {
+    const len = String(value).length.toString().padStart(2, '0');
+    return `${id}${len}${value}`;
+  };
+
+  const gui = format('00', 'br.gov.bcb.pix') + format('01', chave);
+  const merchantInfo = format('26', gui);
+
+  const payload = [
+    format('00', '01'),
+    merchantInfo,
+    format('52', '0000'),
+    format('53', '986'),
+    format('54', valor.toFixed(2)),
+    format('58', 'BR'),
+    format('59', nome.slice(0, 25)),
+    format('60', cidade.slice(0, 15)),
+    format('62', format('05', '***'))
+  ].join('');
+
+  const crcPayload = payload + '6304';
+  const crc = crc16(crcPayload);
+  return crcPayload + crc;
+}
+
 // Pagamento: carrega conteúdo, gera QR Code PIX com valor e conclui
 function setupPagamentoPage() {
   const conteudo = document.getElementById("conteudo-pagamento");
@@ -163,58 +201,31 @@ function setupPagamentoPage() {
 
   if (!conteudo || !btnConcluir) return;
 
-  // Se carrinho vazio
   if (Object.keys(carrinho).length === 0) {
     conteudo.innerHTML = "<p>Carrinho vazio. Volte e adicione itens.</p>";
     btnConcluir.style.display = "none";
     return;
   }
 
-  // Cálculo do total da compra
   const total = Object.values(carrinho).reduce((sum, item) => sum + item.preco * item.quantidade, 0);
 
+  const totalFormattedEl = document.getElementById("total-formatted");
+  if (totalFormattedEl) {
+    totalFormattedEl.textContent = `R$ ${total.toFixed(2)}`;
+  }
+
   if (metodo === "PIX") {
-    // Função CRC16-IBM para EMV
-    function crc16(payload) {
-      let crc = 0xFFFF;
-      for (let i = 0; i < payload.length; i++) {
-        crc ^= payload.charCodeAt(i) << 8;
-        for (let j = 0; j < 8; j++) {
-          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
-          crc &= 0xFFFF;
-        }
-      }
-      return crc.toString(16).toUpperCase().padStart(4, '0');
+    const chavePix = "uperesmarcon@gmail.com";
+    const nome = "Uener Linguucudo";
+    const cidade = "CAMPO MOURAO";
+
+    const payload = montarPayloadPix(chavePix, total, nome, cidade);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(payload)}&size=250x250`;
+
+    const qrImg = document.getElementById("pix-qrcode");
+    if (qrImg) {
+      qrImg.src = qrUrl;
     }
-
-    // Monta payload EMV completo com CRC16
-    function montarPayloadPix(chave, valor) {
-      const valorFmt = valor.toFixed(2).replace('.', '');
-      let payload =
-        "000201" +                                        // Início
-        "26360014br.gov.bcb.pix" +                        // merchant info
-        String(chave.length).padStart(2, '0') + chave +   // chave PIX
-        "52040000" +                                      // merchant category
-        "5303986" +                                       // moeda BRL
-        "54" + String(valorFmt.length).padStart(2, '0') + valorFmt + // valor
-        "5802BR" +                                        // país
-        "59" + String("Uener Linguço".length).padStart(2, '0') + "Uener Linguço" + // nome
-        "6009Sao Paulo" +                                 // localidade
-        "62070503***";                                    // info adicional
-      const crcField = "6304";
-      return payload + crcField + crc16(payload + crcField);
-    }
-
-    const chavePix = "12345678900"; // substitua pela sua chave real
-    const payload = montarPayloadPix(chavePix, total);
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(payload)}`;
-
-
-    conteudo.innerHTML = `
-      <div class="qrcode-container">
-        <img src="${qrUrl}" alt="QR Code PIX — R$ ${total.toFixed(2)}">
-        <p>Escaneie para pagar <strong>R$ ${total.toFixed(2)}</strong></p>
-      </div>`;
   } else {
     conteudo.innerHTML = `
       <form id="form-cartao">
@@ -232,19 +243,18 @@ function setupPagamentoPage() {
         </div>
       </form>`;
 
-    // Restrições e máscaras de input
-    ["numero-cartao","validade","cvv"].forEach(id => {
+    ["numero-cartao", "validade", "cvv"].forEach(id => {
       const inp = document.getElementById(id);
       inp.addEventListener("keydown", somenteDigitos);
       if (id === "validade") {
         inp.addEventListener("input", e => {
-          let v = e.target.value.replace(/\D/g,'').slice(0,4);
-          if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+          let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+          if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
           e.target.value = v;
         });
       } else if (id === "numero-cartao") {
         inp.addEventListener("input", e => {
-          let v = e.target.value.replace(/\D/g,'').slice(0,16);
+          let v = e.target.value.replace(/\D/g, '').slice(0, 16);
           v = v.match(/.{1,4}/g)?.join(' ') || v;
           e.target.value = v;
         });
@@ -255,20 +265,14 @@ function setupPagamentoPage() {
   btnConcluir.addEventListener("click", () => {
     const form = document.getElementById("form-cartao");
     if (form) {
-      const num = document.getElementById("numero-cartao").value.replace(/\s/g,'');
+      const num = document.getElementById("numero-cartao").value.replace(/\s/g, '');
       const val = document.getElementById("validade").value;
       const cvv = document.getElementById("cvv").value;
-      if (!luhnCheck(num)) {
-        return alert("Número de cartão inválido!");
-      }
-      if (!validarValidade(val)) {
-        return alert("Validade inválida ou expirada!");
-      }
-      if (!validarCVV(cvv)) {
-        return alert("CVV inválido!");
-      }
+      if (!luhnCheck(num)) return alert("Número de cartão inválido!");
+      if (!validarValidade(val)) return alert("Validade inválida ou expirada!");
+      if (!validarCVV(cvv)) return alert("CVV inválido!");
     }
-    // finaliza pagamento
+
     limparCarrinho();
     conteudo.style.display = "none";
     btnConcluir.style.display = "none";
@@ -282,93 +286,3 @@ document.addEventListener("DOMContentLoaded", () => {
   setupConfirmacaoPage();
   setupPagamentoPage();
 });
-
-// script.js
-
-// Função para formatar número como moeda brasileira
-function formatBRL(value) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Exemplo: pegar total do carrinho (substitua por sua lógica real)
-let totalCart = 0;
-
-// Se você estiver armazenando o carrinho em localStorage:
-const cart = JSON.parse(localStorage.getItem('uenerCart') || '[]');
-totalCart = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-// Exibir valor total na página
-const totalAmountEl = document.getElementById('total-amount');
-totalAmountEl.textContent = formatBRL(totalCart);
-
-// Montar payload PIX seguindo o padrão EMV
-function buildPixPayload({
-  pixKey,
-  description,
-  merchantName,
-  merchantCity,
-  amount,
-}) {
-  // helper para montar campos EMV
-  const field = (id, value) => {
-    const len = String(value).length.toString().padStart(2, '0');
-    return `${id}${len}${value}`;
-  };
-
-  const payload = [
-    field('00', '01'), // versão do padrão
-    field('26', // Merchant Account Information
-      field('00', 'br.gov.bcb.pix') +
-      field('01', pixKey) // sua chave PIX
-    ),
-    field('52', '0000'),          // Merchant Category Code
-    field('53', '986'),           // Moeda (986 = BRL)
-    field('54', amount.toFixed(2)), // Valor
-    field('58', 'BR'),            // País
-    field('59', merchantName.slice(0, 25)), // Nome do recebedor (máx 25)
-    field('60', merchantCity.slice(0, 15)), // Cidade (máx 15)
-    field('62', // Additional Data Field
-      field('05', '***') // ID do pagamento (opcional)
-    )
-  ].join('');
-
-  // CRC16-CCITT
-  const crc16 = (s) => {
-    let crc = 0xFFFF;
-    for (let i = 0; i < s.length; i++) {
-      crc ^= s.charCodeAt(i) << 8;
-      for (let j = 0; j < 8; j++) {
-        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
-      }
-    }
-    return crc & 0xFFFF;
-  };
-
-  const payloadWithCRC = payload + '6304' + crc16(payload).toString(16).toUpperCase().padStart(4, '0');
-  return payloadWithCRC;
-}
-
-// Dados da sua loja
-const pixKey = 'uperesmarcon@gmail.com';       // substitua pela sua chave PIX
-const merchantName = 'Uener Linguço';
-const merchantCity = 'SAO PAULO';
-const description = 'Compra Uener Linguço';
-
-// Gerar payload e definir imagem de QR Code
-const payload = buildPixPayload({
-  pixKey,
-  description,
-  merchantName,
-  merchantCity,
-  amount: totalCart,
-});
-
-// Usando API pública de geração de QR: api.qrserver.com
-const qrImg = document.getElementById('pix-qrcode');
-qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(payload)}&size=250x250`;
-
-// Botão Confirmar leva ao confirmacao.html
-document.getElementById('btn-confirm').onclick = () => {
-  window.location.href = 'confirmacao.html';
-};
-

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Uener Linguço — Pagamento</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
@@ -13,24 +13,33 @@
 
   <main class="container">
     <section class="payment">
-      <h2>Pagamento via PIX</h2>
-      <p>Valor total: <strong id="total-amount">R$ 0,00</strong></p>
-      <p>Escaneie o QR Code abaixo para efetuar o pagamento:</p>
-      <div class="qrcode-container">
-        <img
-          id="pix-qrcode"
-          src=""
-          alt="QR Code PIX Uener Linguço"
-          class="qrcode-image"
-          onerror="this.onerror=null; this.src='../img/qrcode-fallback.png';"
-        />
+      <h2>Pagamento</h2>
+
+      <!-- Container de pagamento -->
+      <div id="conteudo-pagamento">
+        <div class="qrcode-container">
+          <!-- Aqui o script vai injetar o QR Code -->
+          <img id="pix-qrcode" alt="QR Code PIX" />
+          <p>Escaneie para pagar <strong id="total-formatted">R$ 0,00</strong></p>
+        </div>
       </div>
-      <p>Após confirmação do pagamento, você será redirecionado para a página de confirmação.</p>
-      <button class="btn" id="btn-confirm">Confirmar</button>
-      <button class="btn btn-secondary" onclick="window.history.back();">Voltar</button>
+
+      <!-- Botão para concluir pagamento -->
+      <button id="btn-concluir" class="btn">Concluir Pagamento</button>
+
+      <!-- Mensagem final (inicialmente oculta) -->
+      <div id="mensagem-final" style="display: none; margin-top: 20px;">
+        <p>Pagamento realizado com sucesso! Obrigado pela compra.</p>
+        <button class="btn" onclick="window.location.href='index.html'">
+          Voltar ao Início
+        </button>
+      </div>
     </section>
   </main>
 
+  <script>
+    console.log('Pagamento.html carregado');
+  </script>
   <script src="../js/script.js"></script>
 </body>
 </html>
